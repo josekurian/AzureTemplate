@@ -1,16 +1,22 @@
-version: '3.8'
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - MOCK_MODE=true
+      MOCK_MODE: "true"
     volumes:
-      - ./:/app
+      - ./app:/app/app
+    restart: unless-stopped
+
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "8080:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
