@@ -1,0 +1,10 @@
+.kv-table{width:100%;border-collapse:collapse}
+.kv-table th{background:#0f1b2b;color:#fff;padding:8px;text-align:left;width:20%}
+.kv-table td{background:#071124;color:#cfe9ff;padding:8px}
+.episodes-table{width:100%;border-collapse:collapse}
+.episodes-table th{background:#0f1b2b;color:#fff;padding:8px;text-align:left}
+.episodes-table td{background:#071124;color:#cfe9ff;padding:8px}
+.reviews-table{width:100%;border-collapse:collapse}
+.reviews-table th{background:#0f1b2b;color:#fff;padding:8px}
+.reviews-table td{background:#071124;color:#cfe9ff;padding:8px}
+.card{background:#071124;padding:12px;border-radius:8px}

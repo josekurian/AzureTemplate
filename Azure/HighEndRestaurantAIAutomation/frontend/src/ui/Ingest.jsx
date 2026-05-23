@@ -15,7 +15,12 @@ export default function Ingest(){
       <h2>Ingest (upload)</h2>
       <input type="file" onChange={e=>setFile(e.target.files[0])} />
       <button onClick={upload}>Upload</button>
-      <pre>{res ? JSON.stringify(res, null, 2) : 'No result yet'}</pre>
+      {res && (
+        <div>
+          <h3>Result</h3>
+          <pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(res, null, 2)}</pre>
+        </div>
+      )}
     </div>
   )
 }

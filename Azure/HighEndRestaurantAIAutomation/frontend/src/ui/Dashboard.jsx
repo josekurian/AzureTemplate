@@ -7,11 +7,13 @@ export default function Dashboard(){
   return (
     <div>
       <h2>Overview</h2>
-      <p>Service: {summary.service}</p>
-      <p>Mock mode: {String(summary.mock_mode)}</p>
-      <p>Episodes: {summary.episodes}</p>
-      <p>Agents: {summary.agents}</p>
-      <p>Workflows: {summary.workflows}</p>
+      <div className="card">
+        <div><strong>Service</strong>: {summary.service}</div>
+        <div><strong>Mock mode</strong>: {String(summary.mock_mode)}</div>
+        <div><strong>Episodes</strong>: {summary.episodes}</div>
+        <div><strong>Agents</strong>: {summary.agents}</div>
+        <div><strong>Workflows</strong>: {summary.workflows}</div>
+      </div>
     </div>
   )
 }
