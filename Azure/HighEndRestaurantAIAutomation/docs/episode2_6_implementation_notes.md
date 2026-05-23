@@ -1,0 +1,1 @@
+Notes: Episodes 2-6 implemented as mocks/stubs. Replace mock implementations with real azure-sdk code when ready. Tests validate behavior in MOCK_MODE.
