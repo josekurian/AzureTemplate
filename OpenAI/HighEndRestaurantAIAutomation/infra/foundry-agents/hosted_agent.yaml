@@ -1,0 +1,8 @@
+name: restaurant-hosted-agent
+type: hosted-agent
+description: Hosted Episode 3 restaurant agent package.
+container:
+  image: high-end-restaurant-ai-automation:latest
+  port: 8000
+healthcheck:
+  path: /health

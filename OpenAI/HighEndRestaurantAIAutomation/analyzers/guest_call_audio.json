@@ -1,0 +1,8 @@
+{
+  "name": "Guest call understanding analyzer",
+  "inputKinds": ["audio/wav", "audio/mpeg"],
+  "targets": ["intent", "occasion", "allergy", "handoff_recommended"],
+  "defaultOptions": {
+    "enableSpeakerTurns": false
+  }
+}

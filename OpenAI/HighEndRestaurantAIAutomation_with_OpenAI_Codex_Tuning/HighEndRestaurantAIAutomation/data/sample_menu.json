@@ -1,0 +1,26 @@
+{
+  "restaurant": "Maison Azure",
+  "menus": [
+    {
+      "name": "Chef's Seasonal Tasting",
+      "price": 225,
+      "courses": 8,
+      "notes": "Vegetarian version available with 24-hour notice"
+    },
+    {
+      "name": "Grand Reserve Pairing",
+      "price": 145,
+      "notes": "Sommelier-selected premium wine pairing"
+    },
+    {
+      "name": "Private Dining Salon",
+      "minimum_spend": 5000,
+      "capacity": 24
+    }
+  ],
+  "policies": {
+    "dress_code": "Elegant attire; jackets recommended after 6 PM.",
+    "cancellation": "Cancellations inside 24 hours may incur a per-person fee.",
+    "allergens": "Guests should disclose allergies at booking and again on arrival."
+  }
+}

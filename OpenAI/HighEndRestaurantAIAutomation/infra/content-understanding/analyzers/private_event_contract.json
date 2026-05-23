@@ -1,0 +1,6 @@
+{
+  "name": "Private event contract analyzer",
+  "inputKinds": ["application/pdf", "image/png"],
+  "targets": ["party_size", "minimum_spend", "deposit_required", "approval_required"],
+  "defaultOptions": { "requireHumanReviewBelowConfidence": 0.9 }
+}

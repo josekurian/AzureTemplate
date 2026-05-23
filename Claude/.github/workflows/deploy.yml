@@ -1,0 +1,388 @@
+# =============================================================================
+# Restaurant AI — GitHub Actions CI/CD Pipeline
+# =============================================================================
+# AI-102 Skills Demonstrated:
+#   Phase 8 — CI/CD: IaC deploy + app deploy + test + production gate
+#   - Bicep validation and what-if before deployment
+#   - Workload Identity Federation (no stored secrets in GitHub)
+#   - Automated evaluation gate before production promotion
+#   - Manual approval required for production deployment
+#   - Rollback step via slot swap
+# =============================================================================
+
+name: Restaurant AI — Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, staging, prod]
+      skip_evaluation:
+        description: 'Skip AI evaluation gate (use with caution)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  RESOURCE_GROUP: restaurantai-${{ github.event.inputs.environment || 'dev' }}-rg
+  BASE_NAME: restaurantai
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
+
+# ── Permissions (Workload Identity Federation — no stored credentials) ───────
+permissions:
+  id-token: write   # Required for OIDC token exchange
+  contents: read
+  pull-requests: write
+
+jobs:
+
+  # ── Job 1: Validate ─────────────────────────────────────────────────────────
+  validate:
+    name: Validate Bicep + Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC — no stored credentials)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate Bicep templates
+        run: |
+          az bicep build --file infra/main.bicep
+          echo "Bicep compilation: PASSED"
+
+      - name: Bicep what-if (preview changes)
+        run: |
+          az deployment group what-if \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file infra/main.bicep \
+            --parameters infra/parameters/main.parameters.json \
+            --parameters environment=${{ env.ENVIRONMENT }} \
+            --no-pretty-print
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt --quiet
+
+      - name: Lint Python (ruff)
+        run: ruff check src/ tests/
+
+      - name: Type check (mypy)
+        run: mypy src/ --ignore-missing-imports
+
+  # ── Job 2: Run Tests ─────────────────────────────────────────────────────────
+  test:
+    name: Unit + Integration Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt --quiet
+
+      - name: Run unit tests
+        run: pytest tests/unit/ -v --tb=short --junitxml=test-results/unit.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: test-results/
+
+  # ── Job 3: Deploy Infrastructure ─────────────────────────────────────────────
+  deploy-infra:
+    name: Deploy Azure Infrastructure (Bicep)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'pull_request'
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    outputs:
+      openai_endpoint: ${{ steps.bicep-outputs.outputs.openai_endpoint }}
+      search_endpoint: ${{ steps.bicep-outputs.outputs.search_endpoint }}
+      appinsights_connection_string: ${{ steps.bicep-outputs.outputs.appinsights_connection_string }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        run: |
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location eastus \
+            --tags project=restaurant-ai environment=${{ env.ENVIRONMENT }} \
+            --output none
+
+      - name: Deploy Bicep (incremental)
+        id: bicep-deploy
+        run: |
+          OUTPUT=$(az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file infra/main.bicep \
+            --parameters infra/parameters/main.parameters.json \
+            --parameters environment=${{ env.ENVIRONMENT }} \
+            --parameters adminObjectId=${{ secrets.ADMIN_OBJECT_ID }} \
+            --mode Incremental \
+            --output json)
+          echo "deployment_output=$OUTPUT" >> $GITHUB_OUTPUT
+
+      - name: Extract Bicep outputs
+        id: bicep-outputs
+        run: |
+          OUTPUTS=$(az deployment group show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name main \
+            --query properties.outputs \
+            --output json)
+          echo "openai_endpoint=$(echo $OUTPUTS | jq -r '.openAiEndpoint.value')" >> $GITHUB_OUTPUT
+          echo "search_endpoint=$(echo $OUTPUTS | jq -r '.searchEndpoint.value')" >> $GITHUB_OUTPUT
+          echo "appinsights_connection_string=$(echo $OUTPUTS | jq -r '.appInsightsConnectionString.value')" >> $GITHUB_OUTPUT
+
+  # ── Job 4: Build and Push Container ──────────────────────────────────────────
+  build-container:
+    name: Build + Push Docker Image
+    runs-on: ubuntu-latest
+    needs: deploy-infra
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.ACR_NAME }}.azurecr.io/restaurant-ai
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=ref,event=branch
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=registry,ref=${{ secrets.ACR_NAME }}.azurecr.io/restaurant-ai:cache
+          cache-to: type=registry,ref=${{ secrets.ACR_NAME }}.azurecr.io/restaurant-ai:cache,mode=max
+
+  # ── Job 5: AI Search Index ────────────────────────────────────────────────────
+  deploy-search-index:
+    name: Deploy AI Search Index Schema
+    runs-on: ubuntu-latest
+    needs: deploy-infra
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt --quiet
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create / update search index
+        env:
+          AZURE_SEARCH_ENDPOINT: ${{ needs.deploy-infra.outputs.search_endpoint }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_MANAGED_IDENTITY_CLIENT_ID }}
+        run: python scripts/create_search_index.py
+
+  # ── Job 6: Evaluate AI Quality Gate ──────────────────────────────────────────
+  evaluate:
+    name: AI Quality Evaluation Gate
+    runs-on: ubuntu-latest
+    needs: [deploy-infra, deploy-search-index]
+    if: ${{ !inputs.skip_evaluation }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt --quiet
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run evaluation suite
+        id: evaluation
+        env:
+          AZURE_OPENAI_ENDPOINT: ${{ needs.deploy-infra.outputs.openai_endpoint }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_MANAGED_IDENTITY_CLIENT_ID }}
+        run: |
+          python evaluation/run_evaluation.py \
+            --output evaluation-results/results.json \
+            --threshold-groundedness 0.8 \
+            --threshold-relevance 0.75
+
+      - name: Check evaluation gate
+        run: |
+          python evaluation/check_gate.py \
+            --results evaluation-results/results.json \
+            --fail-on-threshold-breach
+
+      - name: Upload evaluation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results-${{ env.ENVIRONMENT }}
+          path: evaluation-results/
+
+  # ── Job 7: Deploy to Staging ──────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy to Staging Slot
+    runs-on: ubuntu-latest
+    needs: [build-container, evaluate]
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy container to staging slot
+        run: |
+          az containerapp update \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ needs.build-container.outputs.image_tag }} \
+            --revision-suffix staging-${{ github.sha }}
+
+      - name: Run smoke tests against staging
+        run: |
+          STAGING_URL=$(az containerapp show \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          python tests/smoke/test_endpoints.py --base-url "https://$STAGING_URL"
+
+  # ── Job 8: Production Approval Gate + Deploy ─────────────────────────────────
+  deploy-production:
+    name: Deploy to Production (Requires Approval)
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    # AI-102: environment 'production' requires manual approval in GitHub
+    environment: production
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Promote staging to production (traffic shift)
+        run: |
+          # Blue-green: shift 20% traffic to new revision first
+          az containerapp ingress traffic set \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --revision-weight latest=20 previous=80
+
+          echo "Monitoring canary for 5 minutes..."
+          sleep 300  # In real pipeline: replace with Azure Monitor metric check
+
+          # Full traffic shift if no alerts
+          az containerapp ingress traffic set \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --revision-weight latest=100
+
+      - name: Tag release
+        run: |
+          git tag "v$(date +%Y%m%d%H%M%S)-prod"
+          git push --tags
+
+  # ── Job 9: Rollback (Manual Trigger) ─────────────────────────────────────────
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    environment: production
+
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Shift traffic back to previous revision
+        run: |
+          PREV_REVISION=$(az containerapp revision list \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?properties.active && !properties.trafficWeight].name | [0]" -o tsv)
+          echo "Rolling back to: $PREV_REVISION"
+          az containerapp ingress traffic set \
+            --name restaurant-ai-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --revision-weight "$PREV_REVISION=100"

@@ -1,0 +1,36 @@
+# Restaurant AI — Python Dependencies
+# AI-102 Reference: all Azure SDK packages follow azure-ai-* naming convention
+
+# Azure Identity (Managed Identity, DefaultAzureCredential)
+azure-identity>=1.17.0
+
+# Azure AI Services SDKs
+azure-ai-documentintelligence>=1.0.0
+azure-ai-contentsafety>=1.0.0
+azure-search-documents>=11.6.0
+
+# Azure OpenAI (pip install openai + azure-identity)
+openai>=1.40.0
+
+# Azure Storage
+azure-storage-blob>=12.22.0
+
+# Azure Key Vault
+azure-keyvault-secrets>=4.8.0
+
+# Azure Monitor / Application Insights
+azure-monitor-opentelemetry-exporter>=1.0.0
+applicationinsights>=0.11.10
+opentelemetry-sdk>=1.25.0
+opentelemetry-api>=1.25.0
+
+# Azure Cognitive Services Speech SDK
+azure-cognitiveservices-speech>=1.40.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# Code quality
+ruff>=0.5.0
+mypy>=1.10.0

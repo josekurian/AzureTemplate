@@ -1,0 +1,27 @@
+[
+  {
+    "id": "tc-001",
+    "input": "Do you have a vegan tasting menu tonight?",
+    "expected_services": [
+      "language",
+      "search",
+      "openai",
+      "content_safety"
+    ]
+  },
+  {
+    "id": "tc-002",
+    "input": "Translate the cancellation policy to French.",
+    "expected_services": [
+      "search",
+      "translator"
+    ]
+  },
+  {
+    "id": "tc-003",
+    "input": "Extract the total from this supplier invoice.",
+    "expected_services": [
+      "document_intelligence"
+    ]
+  }
+]

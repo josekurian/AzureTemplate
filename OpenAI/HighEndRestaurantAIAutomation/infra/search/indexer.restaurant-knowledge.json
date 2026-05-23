@@ -1,0 +1,15 @@
+{
+  "name": "restaurant-knowledge-indexer",
+  "dataSourceName": "restaurant-knowledge-datasource",
+  "targetIndexName": "restaurant-knowledge-index",
+  "skillsetName": "restaurant-enrichment-skillset",
+  "parameters": {
+    "configuration": {
+      "dataToExtract": "contentAndMetadata",
+      "parsingMode": "default"
+    }
+  },
+  "fieldMappings": [
+    { "sourceFieldName": "metadata_storage_name", "targetFieldName": "title" }
+  ]
+}

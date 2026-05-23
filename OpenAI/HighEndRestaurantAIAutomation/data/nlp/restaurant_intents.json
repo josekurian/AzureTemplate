@@ -1,0 +1,34 @@
+[
+  {
+    "intent": "ReserveTable",
+    "utterances": ["book a table", "reservation for two", "table tonight", "reserve dinner"]
+  },
+  {
+    "intent": "PrivateDining",
+    "utterances": ["private dining", "event for 12 guests", "banquet room", "private event"]
+  },
+  {
+    "intent": "AskMenu",
+    "utterances": ["what should I order", "vegan tasting menu", "menu recommendation"]
+  },
+  {
+    "intent": "AskAllergen",
+    "utterances": ["allergy policy", "gluten free", "peanut allergy", "severe dairy allergy"]
+  },
+  {
+    "intent": "Complaint",
+    "utterances": ["I am disappointed", "complaint about service", "bad experience"]
+  },
+  {
+    "intent": "WinePairing",
+    "utterances": ["wine pairing", "sommelier recommendation", "pairing for tasting menu"]
+  },
+  {
+    "intent": "FaqPolicy",
+    "utterances": ["dress code", "cancellation policy", "parking", "minimum spend"]
+  },
+  {
+    "intent": "HumanEscalation",
+    "utterances": ["speak to a manager", "human help", "urgent problem"]
+  }
+]

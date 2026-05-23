@@ -1,0 +1,26 @@
+[
+  {
+    "intent": "make_reservation",
+    "utterances": [
+      "book a table",
+      "reservation for two",
+      "private dining"
+    ]
+  },
+  {
+    "intent": "menu_recommendation",
+    "utterances": [
+      "what should I order",
+      "wine pairing",
+      "vegan tasting menu"
+    ]
+  },
+  {
+    "intent": "policy_question",
+    "utterances": [
+      "dress code",
+      "cancellation",
+      "allergy policy"
+    ]
+  }
+]

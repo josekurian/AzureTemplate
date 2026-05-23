@@ -1,0 +1,6 @@
+{
+  "name": "Chef training video analyzer",
+  "inputKinds": ["video/mp4"],
+  "targets": ["quality_score", "issues", "service_line"],
+  "defaultOptions": { "sampleFramesPerMinute": 12 }
+}

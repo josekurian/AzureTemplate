@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": "restaurantai"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "openAiModelName": {
+      "value": "gpt-4o"
+    },
+    "embeddingModelName": {
+      "value": "text-embedding-3-large"
+    },
+    "openAiCapacity": {
+      "value": 10
+    },
+    "adminObjectId": {
+      "value": "<YOUR-ENTRA-ID-OBJECT-ID>"
+    }
+  }
+}

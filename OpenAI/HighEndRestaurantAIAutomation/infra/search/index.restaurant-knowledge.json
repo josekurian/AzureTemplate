@@ -1,0 +1,44 @@
+{
+  "name": "restaurant-knowledge-index",
+  "fields": [
+    { "name": "id", "type": "Edm.String", "key": true, "filterable": true, "sortable": true },
+    { "name": "chunk_id", "type": "Edm.String", "filterable": true, "sortable": true },
+    { "name": "title", "type": "Edm.String", "searchable": true },
+    { "name": "source", "type": "Edm.String", "filterable": true, "sortable": true },
+    { "name": "document_type", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "category", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "language", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "access_level", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "page", "type": "Edm.Int32", "filterable": true, "sortable": true },
+    { "name": "section", "type": "Edm.String", "filterable": true },
+    { "name": "effective_date", "type": "Edm.String", "filterable": true, "sortable": true },
+    { "name": "confidence", "type": "Edm.Double", "filterable": true, "sortable": true },
+    { "name": "menu_section", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "allergen_tags", "type": "Collection(Edm.String)", "filterable": true, "facetable": true },
+    { "name": "content", "type": "Edm.String", "searchable": true },
+    {
+      "name": "content_vector",
+      "type": "Collection(Edm.Single)",
+      "searchable": true,
+      "dimensions": 3072,
+      "vectorSearchProfile": "restaurant-vector-profile"
+    },
+    { "name": "grounding", "type": "Edm.String" },
+    { "name": "metadata_json", "type": "Edm.String" }
+  ],
+  "semantic": {
+    "configurations": [
+      {
+        "name": "restaurant-semantic",
+        "prioritizedFields": {
+          "titleField": { "fieldName": "title" },
+          "prioritizedContentFields": [{ "fieldName": "content" }]
+        }
+      }
+    ]
+  },
+  "vectorSearch": {
+    "algorithms": [{ "name": "restaurant-hnsw", "kind": "hnsw" }],
+    "profiles": [{ "name": "restaurant-vector-profile", "algorithm": "restaurant-hnsw" }]
+  }
+}

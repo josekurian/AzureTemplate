@@ -1,0 +1,9 @@
+name: restaurant-concierge-prompt-agent
+type: prompt-agent
+description: Guest-facing grounded restaurant concierge.
+model: gpt-5.5
+entrypoint:
+  route: /agents/chat
+defaults:
+  actor_role: guest
+  language: en

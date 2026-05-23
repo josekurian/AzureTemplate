@@ -1,0 +1,14 @@
+{
+  "tools": [
+    {"name": "search_knowledge", "description": "Search grounded restaurant knowledge."},
+    {"name": "draft_reservation", "description": "Create a reservation draft only."},
+    {"name": "check_private_dining_policy", "description": "Retrieve private dining policy details."},
+    {"name": "lookup_menu", "description": "Retrieve grounded menu context."},
+    {"name": "recommend_wine_pairing", "description": "Recommend a grounded wine pairing."},
+    {"name": "review_safety", "description": "Run safety review and prompt-injection checks."},
+    {"name": "summarize_contract", "description": "Summarize contract or event text."},
+    {"name": "translate_text", "description": "Translate guest or staff text."},
+    {"name": "create_manager_packet", "description": "Create a manager handoff payload."},
+    {"name": "record_approval", "description": "Record a manager approval decision."}
+  ]
+}

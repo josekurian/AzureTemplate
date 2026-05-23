@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ep4-nlp-001",
+    "input": "Please book a table for 4 tomorrow at 7 pm.",
+    "expected_intent": "ReserveTable"
+  },
+  {
+    "id": "ep4-nlp-002",
+    "input": "What is your cancellation policy?",
+    "expected_route": "faq"
+  },
+  {
+    "id": "ep4-nlp-003",
+    "input": "Necesito una reserva para dos personas.",
+    "expected_language": "es"
+  }
+]

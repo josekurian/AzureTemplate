@@ -1,0 +1,14 @@
+[
+  {"name": "date", "examples": ["today", "tomorrow", "Friday"]},
+  {"name": "time", "examples": ["7 pm", "19:30"]},
+  {"name": "party_size", "examples": ["2", "12 guests"]},
+  {"name": "allergen", "examples": ["peanut", "gluten", "dairy"]},
+  {"name": "occasion", "examples": ["anniversary", "birthday", "proposal"]},
+  {"name": "room", "examples": ["salon", "private room"]},
+  {"name": "budget", "examples": ["$5000", "$200"]},
+  {"name": "language", "examples": ["Spanish", "French"]},
+  {"name": "dish", "examples": ["chef's tasting", "vegan tasting menu"]},
+  {"name": "wine", "examples": ["pinot noir", "champagne"]},
+  {"name": "parking", "examples": ["valet parking"]},
+  {"name": "dress_code", "examples": ["jackets recommended"]}
+]

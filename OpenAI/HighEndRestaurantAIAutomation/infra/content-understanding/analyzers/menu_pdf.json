@@ -1,0 +1,6 @@
+{
+  "name": "Restaurant menu PDF analyzer",
+  "inputKinds": ["application/pdf"],
+  "targets": ["menu_title", "course_count", "allergen_tags", "upsell_candidates"],
+  "defaultOptions": { "extractTables": true, "normalizeAllergens": true }
+}

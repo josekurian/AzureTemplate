@@ -1,0 +1,6 @@
+{
+  "name": "Supplier invoice review analyzer",
+  "inputKinds": ["application/pdf", "image/png"],
+  "targets": ["invoice_number", "total", "rush_payment"],
+  "defaultOptions": { "extractLineItems": true }
+}

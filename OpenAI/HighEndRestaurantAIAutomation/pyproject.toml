@@ -1,0 +1,12 @@
+[project]
+name = "high-end-restaurant-ai-automation"
+version = "0.1.0"
+description = "AI-102 Azure AI practice implementation for restaurant automation"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]

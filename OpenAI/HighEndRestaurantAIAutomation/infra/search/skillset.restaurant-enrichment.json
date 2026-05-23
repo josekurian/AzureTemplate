@@ -1,0 +1,16 @@
+{
+  "name": "restaurant-enrichment-skillset",
+  "description": "Optional enrichment skillset for OCR, transcript cleanup, and restaurant metadata projection.",
+  "skills": [
+    {
+      "@odata.type": "#Microsoft.Skills.Text.SplitSkill",
+      "name": "splitContent",
+      "description": "Split raw extracted content into manageable text pages.",
+      "textSplitMode": "pages",
+      "maximumPageLength": 4000,
+      "context": "/document",
+      "inputs": [{ "name": "text", "source": "/document/content" }],
+      "outputs": [{ "name": "textItems", "targetName": "pages" }]
+    }
+  ]
+}

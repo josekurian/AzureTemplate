@@ -1,0 +1,26 @@
+trigger:
+- main
+
+stages:
+- stage: Validate
+  jobs:
+  - job: Validate
+    steps:
+    - script: python -m pip install -r requirements.txt
+    - script: ruff check app tests
+    - script: pytest -q
+    - script: az bicep build --file infra/bicep/main.bicep
+
+- stage: Deploy_Infra
+  dependsOn: Validate
+  jobs:
+  - job: Deploy
+    steps:
+    - script: az deployment group create -g $(RESOURCE_GROUP) -f infra/bicep/main.bicep -p appName=$(APP_NAME)
+
+- stage: Smoke_Test
+  dependsOn: Deploy_Infra
+  jobs:
+  - job: Smoke
+    steps:
+    - script: bash scripts/smoke_test.sh

@@ -1,0 +1,9 @@
+name: restaurant-private-dining-workflow
+type: workflow-agent
+description: Approval-gated private dining workflow.
+entrypoint:
+  route: /workflows/private-dining
+stages:
+  - concierge_agent
+  - private_dining_agent
+  - manager_approval

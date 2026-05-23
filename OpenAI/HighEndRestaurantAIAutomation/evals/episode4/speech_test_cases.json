@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ep4-speech-001",
+    "input_type": "mock_audio",
+    "expected_feature": "transcribe"
+  },
+  {
+    "id": "ep4-speech-002",
+    "input_type": "mock_audio",
+    "expected_feature": "speech_translate"
+  },
+  {
+    "id": "ep4-speech-003",
+    "input_type": "mock_audio",
+    "expected_feature": "pronunciation"
+  }
+]
