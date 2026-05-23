@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurant AI Test Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Azure Test Console</p>
+          <h1>High-End Restaurant AI</h1>
+          <p class="sidebar-copy">
+            Frontend harness for episode testing, response tracing, workflow visibility, and runtime metrics.
+          </p>
+        </div>
+        <nav class="menu" id="menu"></nav>
+        <div class="sidebar-footer">
+          <div class="stat-chip">
+            <span>API</span>
+            <strong id="api-base-label">http://localhost:8000</strong>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Monitoring</p>
+            <h2 id="view-title">Overview</h2>
+          </div>
+          <button id="refresh-button" class="button secondary">Refresh data</button>
+        </header>
+
+        <section id="view-overview" class="view active"></section>
+        <section id="view-episodes" class="view"></section>
+        <section id="view-requests" class="view"></section>
+        <section id="view-performance" class="view"></section>
+        <section id="view-agents" class="view"></section>
+        <section id="view-workflows" class="view"></section>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+  </html>
